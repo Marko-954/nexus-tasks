@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Nexus"/>
+<meta name="theme-color" content="#0a0a12"/>
+<title>NEXUS Tasks</title>
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODAgMTgwIj48cmVjdCB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCIgcng9IjQwIiBmaWxsPSIjMGEwYTEyIi8+PHRleHQgeD0iOTAiIHk9IjExNSIgZm9udC1zaXplPSI5MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzAwZTVmZiI+4pqhPC90ZXh0Pjwvc3ZnPg=="/>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0a0a12; --surface: #12121f; --card: #181830; --border: #2a2a4a;
+    --glow: #00e5ff; --glow-dim: #00e5ff44; --accent2: #b44aff; --accent3: #ff2d7b;
+    --text: #e8e8f0; --text-dim: #8888aa;
+    --urgent: #ff2d7b; --high: #ffaa00; --medium: #00e5ff; --low: #44dd88; --success: #44dd88;
+    --font: 'Inter', system-ui, -apple-system, sans-serif;
+    --mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font); overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+  body { padding-top: var(--safe-top); padding-bottom: var(--safe-bottom); }
+  #root { max-width: 480px; margin: 0 auto; min-height: 100vh; position: relative; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes pulse { 0%, 100% { opacity: .4; transform: scale(1); } 50% { opacity: 1; transform: scale(1.4); } }
+
+  .ambient-1 { position: fixed; top: -100px; right: -100px; width: 300px; height: 300px; border-radius: 50%; background: #00e5ff06; filter: blur(80px); pointer-events: none; }
+  .ambient-2 { position: fixed; bottom: -80px; left: -80px; width: 250px; height: 250px; border-radius: 50%; background: #b44aff06; filter: blur(80px); pointer-events: none; }
+  .scanlines { position: fixed; inset: 0; background: repeating-linear-gradient(0deg, transparent, transparent 2px, #00e5ff02 2px, #00e5ff02 4px); pointer-events: none; z-index: 9999; }
+
+  .header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); background: linear-gradient(180deg, var(--surface) 0%, var(--bg) 100%); position: sticky; top: 0; z-index: 100; }
+  .logo-icon { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, var(--glow), var(--accent2)); display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 0 12px #00e5ff44, 0 0 24px #00e5ff22; }
+  .logo-text { color: var(--text); font-weight: 700; font-size: 18px; letter-spacing: -0.02em; }
+  .logo-sub { color: var(--text-dim); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; font-family: var(--mono); }
+
+  .nav-btn { background: transparent; border: 1px solid var(--border); color: var(--text-dim); padding: 6px 14px; border-radius: 6px; cursor: pointer; font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; transition: all 0.2s; }
+  .nav-btn.active { background: #00e5ff18; border-color: #00e5ff66; color: var(--glow); }
+  .nav-btn:hover { border-color: var(--glow); }
+  .settings-btn { background: transparent; border: 1px solid var(--border); color: var(--text-dim); padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 16px; transition: all 0.2s; }
+  .settings-btn.active { background: #b44aff18; border-color: #b44aff66; color: var(--accent2); }
+
+  .settings { background: var(--surface); border-bottom: 1px solid var(--border); padding: 20px; animation: slideDown 0.2s ease; }
+  .settings-title { color: var(--accent2); font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; }
+  .settings-input { width: 100%; padding: 10px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 13px; font-family: var(--mono); outline: none; transition: border-color 0.2s; }
+  .settings-input:focus { border-color: #00e5ff66; }
+  .settings-input::placeholder { color: #555570; }
+  .settings-label { color: var(--text-dim); font-size: 11px; font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 6px; }
+  .settings-hint { color: var(--text-dim); font-size: 10px; margin-top: 4px; font-family: var(--mono); line-height: 1.5; }
+  .status-pill { padding: 4px 10px; border-radius: 20px; font-size: 10px; font-family: var(--mono); display: inline-block; }
+  .status-pill.ok { background: #44dd8818; color: var(--success); border: 1px solid #44dd8833; }
+  .status-pill.warn { background: #ff2d7b18; color: var(--urgent); border: 1px solid #ff2d7b33; }
+  .status-pill.info { background: #ffaa0018; color: var(--high); border: 1px solid #ffaa0033; }
+
+  .connect-btn { padding: 10px 18px; border-radius: 8px; cursor: pointer; font-family: var(--mono); font-size: 12px; font-weight: 600; letter-spacing: 0.04em; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+  .connect-btn.google { background: #181830; border: 1px solid #4285f466; color: #8ab4f8; }
+  .connect-btn.google:hover { background: #4285f418; border-color: #8ab4f8; box-shadow: 0 0 10px #4285f433; }
+  .connect-btn.disconnect { background: transparent; border: 1px solid #ff2d7b44; color: #ff2d7b; font-size: 11px; padding: 6px 12px; }
+  .connect-btn.disconnect:hover { background: #ff2d7b12; }
+
+  .setup-guide { margin-top: 12px; padding: 14px; background: #4285f408; border-radius: 10px; border: 1px solid #4285f422; }
+  .setup-guide-title { color: #8ab4f8; font-size: 11px; font-family: var(--mono); font-weight: 600; margin-bottom: 8px; }
+  .setup-step { color: var(--text-dim); font-size: 11px; line-height: 1.7; font-family: var(--font); margin-bottom: 4px; }
+  .setup-step strong { color: var(--text); font-weight: 600; }
+  .setup-step code { background: #00e5ff0a; color: var(--glow); padding: 1px 5px; border-radius: 3px; font-family: var(--mono); font-size: 10px; }
+
+  .gcal-user { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #44dd8808; border: 1px solid #44dd8822; border-radius: 8px; margin-top: 8px; }
+  .gcal-user-icon { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #4285f4, #34a853); display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; font-weight: 700; }
+  .gcal-user-info { flex: 1; }
+  .gcal-user-email { color: var(--text); font-size: 12px; font-family: var(--mono); }
+  .gcal-user-status { color: var(--success); font-size: 10px; font-family: var(--mono); }
+  .gcal-expiry { color: var(--text-dim); font-size: 10px; font-family: var(--mono); margin-top: 4px; }
+
+  .pwa-box { margin-top: 16px; padding: 12px; background: #00e5ff08; border-radius: 8px; border: 1px solid #00e5ff22; }
+  .pwa-title { color: var(--glow); font-size: 11px; font-family: var(--mono); font-weight: 600; margin-bottom: 4px; }
+  .pwa-text { color: var(--text-dim); font-size: 11px; line-height: 1.5; }
+
+  .input-area { padding: 16px 20px; border-bottom: 1px solid var(--border); }
+  .input-row { display: flex; gap: 10px; }
+  .task-input { flex: 1; padding: 12px 16px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-size: 14px; font-family: var(--font); outline: none; transition: border-color 0.2s; }
+  .task-input:focus { border-color: #00e5ff66; }
+  .task-input::placeholder { color: #555570; }
+
+  .glow-btn { background: transparent; border: 1px solid #00e5ff66; color: var(--glow); padding: 10px 22px; border-radius: 8px; cursor: pointer; font-family: var(--mono); font-size: 13px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; transition: all 0.2s; }
+  .glow-btn:hover { background: #00e5ff22; border-color: var(--glow); box-shadow: 0 0 8px #00e5ff44, 0 0 16px #00e5ff22; }
+  .glow-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .deadline-section { animation: slideDown 0.2s ease; }
+  .deadline-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .deadline-label { color: var(--text-dim); font-size: 11px; font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.08em; }
+  .cancel-btn { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 12px; font-family: var(--mono); }
+  .task-preview { padding: 8px 12px; background: var(--card); border-radius: 8px; margin-bottom: 12px; color: var(--text); font-size: 14px; border: 1px solid var(--border); }
+  .deadline-grid { display: flex; gap: 8px; }
+  .deadline-btn { flex: 1; padding: 12px 8px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; cursor: pointer; text-align: center; transition: all 0.2s; }
+  .deadline-btn:hover { border-color: #00e5ff88; box-shadow: 0 0 6px #00e5ff44, 0 0 12px #00e5ff22; }
+  .deadline-btn-title { color: var(--text); font-size: 13px; font-weight: 600; }
+  .deadline-btn-sub { color: var(--text-dim); font-size: 10px; margin-top: 2px; font-family: var(--mono); }
+
+  .processing { animation: slideDown 0.2s ease; text-align: center; padding: 16px 0; }
+  .processing-label { color: var(--accent2); font-size: 12px; font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.08em; }
+  .pulse-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--accent2); animation: pulse 1.5s ease-in-out infinite; margin-right: 10px; vertical-align: middle; }
+  .processing-status { color: var(--text-dim); font-size: 12px; font-family: var(--mono); margin-top: 8px; }
+
+  .stats { display: flex; gap: 1px; padding: 0 20px; margin: 12px 0; }
+  .stat-item { flex: 1; padding: 10px 8px; text-align: center; background: var(--surface); }
+  .stat-item:first-child { border-radius: 8px 0 0 8px; }
+  .stat-item:last-child { border-radius: 0 8px 8px 0; }
+  .stat-item:not(:last-child) { border-right: 1px solid var(--border); }
+  .stat-value { font-size: 20px; font-weight: 700; font-family: var(--mono); }
+  .stat-label { color: var(--text-dim); font-size: 9px; font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 2px; }
+
+  .priority-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; padding: 0 4px; }
+  .priority-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .priority-name { font-size: 11px; font-family: var(--mono); font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; }
+  .priority-count { color: var(--text-dim); font-size: 11px; font-family: var(--mono); }
+  .priority-line { flex: 1; height: 1px; }
+  .priority-section { margin-bottom: 20px; }
+
+  .task-card { padding: 14px 16px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; transition: all 0.25s ease; animation: fadeIn 0.3s ease; border-left-width: 3px; border-left-style: solid; margin-bottom: 8px; }
+  .task-card:hover { box-shadow: 0 0 6px var(--card-glow, #00e5ff44); }
+  .task-card-inner { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+  .task-text { color: var(--text); font-size: 14px; font-weight: 500; line-height: 1.4; }
+  .task-text.done { text-decoration: line-through; opacity: 0.5; }
+  .task-ai { color: var(--text-dim); font-size: 11px; margin-top: 4px; font-family: var(--mono); font-style: italic; }
+  .task-tags { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+  .tag { padding: 2px 8px; border-radius: 20px; font-size: 10px; font-family: var(--mono); font-weight: 700; letter-spacing: 0.05em; }
+  .task-actions { display: flex; gap: 4px; opacity: 0; transition: opacity 0.2s; }
+  .task-card:hover .task-actions { opacity: 1; }
+  .action-btn { width: 28px; height: 28px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; border: 1px solid; font-size: 14px; background: transparent; }
+  .action-btn.complete { background: #44dd8812; border-color: #44dd8844; color: var(--success); }
+  .action-btn.delete { background: #ff2d7b12; border-color: #ff2d7b44; color: var(--urgent); font-size: 12px; }
+
+  .empty { text-align: center; padding: 60px 20px; }
+  .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.3; }
+  .empty-title { color: var(--text-dim); font-size: 16px; margin-bottom: 8px; }
+  .empty-sub { color: var(--text-dim); font-size: 12px; font-family: var(--mono); opacity: 0.6; }
+  .task-list { padding: 0 20px 100px; }
+
+  @media (hover: none) {
+    .task-actions { opacity: 1 !important; }
+    .deadline-btn:active { background: #00e5ff12; }
+  }
+</style>
+</head>
+<body>
+<div class="ambient-1"></div>
+<div class="ambient-2"></div>
+<div class="scanlines"></div>
+<div id="root"></div>
+
+<!-- Google Identity Services for OAuth popup flow -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+const PRIORITY_META = {
+  urgent: { color: "#ff2d7b", label: "URGENT", icon: "\u26A1" },
+  high:   { color: "#ffaa00", label: "HIGH",   icon: "\uD83D\uDD25" },
+  medium: { color: "#00e5ff", label: "MEDIUM", icon: "\u25C6" },
+  low:    { color: "#44dd88", label: "LOW",    icon: "\u25CB" },
+};
+
+const DEADLINE_OPTIONS = [
+  { key: "day",   label: "End of Day",   sub: "Due today" },
+  { key: "week",  label: "End of Week",  sub: "Due this week" },
+  { key: "month", label: "End of Month", sub: "Due this month" },
+];
+
+const uid = () => Math.random().toString(36).slice(2, 10);
+
+function deadlineDate(key) {
+  const d = new Date();
+  if (key === "day")   { d.setHours(23, 59, 59, 0); }
+  if (key === "week")  { d.setDate(d.getDate() + (7 - d.getDay())); d.setHours(23,59,59,0); }
+  if (key === "month") { d.setMonth(d.getMonth() + 1, 0); d.setHours(23,59,59,0); }
+  return d;
+}
+
+function formatDate(d) {
+  return new Date(d).toLocaleDateString("en-US", { weekday:"short", month:"short", day:"numeric" });
+}
+
+function timeLeft(d) {
+  const ms = new Date(d) - new Date();
+  if (ms < 0) return "Overdue";
+  const hrs = Math.floor(ms / 3600000);
+  if (hrs < 24) return hrs + "h left";
+  return Math.floor(hrs / 24) + "d left";
+}
+
+/* ─── Claude API ─── */
+async function askClaude(apiKey, task, deadline) {
+  const resp = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+      "anthropic-dangerous-direct-browser-access": "true",
+    },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 300,
+      messages: [{ role: "user", content:
+        'You are a productivity AI. Analyze this task and respond in JSON only, no markdown.\n\nTask: "' + task + '"\nDeadline: end of ' + deadline +
+        '\n\nRespond with exactly this JSON format:\n{"priority":"urgent|high|medium|low","reason":"one short sentence","calendarEvent":{"title":"event title","description":"brief description"},"isCalendarWorthy":true|false}\n\nRules:\n- If the task mentions a test, exam, meeting, appointment, deadline, or event -> isCalendarWorthy: true\n- Priority should consider urgency of the deadline AND importance of the task\n- "urgent" = end of day + important, "high" = soon or important, "medium" = moderate, "low" = flexible/minor'
+      }]
+    })
+  });
+  const data = await resp.json();
+  const text = data.content && data.content[0] && data.content[0].text || "";
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  return JSON.parse(jsonMatch[0]);
+}
+
+/* ─── Google Calendar ─── */
+async function addToGoogleCalendar(token, event, dlKey) {
+  const start = new Date();
+  const end = deadlineDate(dlKey);
+  if (dlKey === "day") {
+    start.setHours(start.getHours() + 1, 0, 0, 0);
+    end.setTime(start.getTime() + 3600000);
+  } else if (dlKey === "week") {
+    const f = new Date();
+    f.setDate(f.getDate() + (5 - f.getDay()));
+    f.setHours(9, 0, 0, 0);
+    start.setTime(f.getTime());
+    end.setTime(f.getTime() + 3600000);
+  } else {
+    const l = deadlineDate("month");
+    l.setDate(l.getDate() - 1);
+    l.setHours(9, 0, 0, 0);
+    start.setTime(l.getTime());
+    end.setTime(l.getTime() + 3600000);
+  }
+  const resp = await fetch("https://www.googleapis.com/calendar/v3/calendars/primary/events", {
+    method: "POST",
+    headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      summary: event.title,
+      description: event.description,
+      start: { dateTime: start.toISOString() },
+      end: { dateTime: end.toISOString() },
+      reminders: { useDefault: true }
+    })
+  });
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}));
+    throw new Error(err.error?.message || "Calendar API error " + resp.status);
+  }
+  return true;
+}
+
+/* ─── Google OAuth Manager (uses Google Identity Services) ─── */
+function useGoogleAuth(clientId) {
+  const [token, setToken] = useState(null);
+  const [email, setEmail] = useState(null);
+  const [expiresAt, setExpiresAt] = useState(null);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const tokenClientRef = useRef(null);
+
+  // Initialize the token client when clientId changes
+  useEffect(() => {
+    if (!clientId || !window.google?.accounts?.oauth2) return;
+    tokenClientRef.current = window.google.accounts.oauth2.initTokenClient({
+      client_id: clientId,
+      scope: "https://www.googleapis.com/auth/calendar.events",
+      callback: async (response) => {
+        if (response.error) {
+          setError(response.error_description || response.error);
+          setLoading(false);
+          return;
+        }
+        setToken(response.access_token);
+        setExpiresAt(Date.now() + (response.expires_in * 1000));
+        setError(null);
+        // Fetch user email
+        try {
+          const info = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+            headers: { Authorization: "Bearer " + response.access_token }
+          });
+          const data = await info.json();
+          setEmail(data.email || "Connected");
+        } catch { setEmail("Connected"); }
+        setLoading(false);
+      },
+      error_callback: (err) => {
+        setError("OAuth popup was closed or blocked");
+        setLoading(false);
+      }
+    });
+  }, [clientId]);
+
+  const connect = useCallback(() => {
+    if (!tokenClientRef.current) {
+      setError("Enter your Google Client ID first, then click Connect");
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    tokenClientRef.current.requestAccessToken({ prompt: "consent" });
+  }, []);
+
+  const refresh = useCallback(() => {
+    if (!tokenClientRef.current) return;
+    setLoading(true);
+    tokenClientRef.current.requestAccessToken({ prompt: "" });
+  }, []);
+
+  const disconnect = useCallback(() => {
+    if (token) {
+      try { window.google.accounts.oauth2.revoke(token); } catch {}
+    }
+    setToken(null);
+    setEmail(null);
+    setExpiresAt(null);
+  }, [token]);
+
+  // Auto-refresh 5 min before expiry
+  useEffect(() => {
+    if (!expiresAt) return;
+    const refreshIn = expiresAt - Date.now() - 300000;
+    if (refreshIn <= 0) { refresh(); return; }
+    const timer = setTimeout(refresh, refreshIn);
+    return () => clearTimeout(timer);
+  }, [expiresAt, refresh]);
+
+  const isConnected = !!token;
+  const isExpired = expiresAt ? Date.now() > expiresAt : false;
+
+  return { token: isExpired ? null : token, email, expiresAt, error, loading, isConnected: isConnected && !isExpired, connect, disconnect, refresh };
+}
+
+/* ─── Components ─── */
+
+function Header({ view, setView, taskCount, settingsOpen, setSettingsOpen }) {
+  return (
+    <div className="header">
+      <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+        <div className="logo-icon">{"\u26A1"}</div>
+        <div>
+          <div className="logo-text">NEXUS</div>
+          <div className="logo-sub">{taskCount} active tasks</div>
+        </div>
+      </div>
+      <div style={{ display:"flex", gap:6 }}>
+        <button className={"nav-btn" + (view==="tasks" ? " active" : "")} onClick={() => setView("tasks")}>Tasks</button>
+        <button className={"nav-btn" + (view==="completed" ? " active" : "")} onClick={() => setView("completed")}>Completed</button>
+        <button className={"settings-btn" + (settingsOpen ? " active" : "")} onClick={() => setSettingsOpen(!settingsOpen)}>{"\u2699"}</button>
+      </div>
+    </div>
+  );
+}
+
+function SettingsPanel({ config, setConfig, gcal, onClose }) {
+  const [showSetup, setShowSetup] = useState(false);
+
+  function minutesLeft() {
+    if (!gcal.expiresAt) return null;
+    const mins = Math.round((gcal.expiresAt - Date.now()) / 60000);
+    return mins > 0 ? mins + " min remaining" : "Refreshing...";
+  }
+
+  return (
+    <div className="settings">
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
+        <div className="settings-title">{"\u2699"} Configuration</div>
+        <button onClick={onClose} style={{ background:"none", border:"none", color:"#8888aa", cursor:"pointer", fontSize:18 }}>&times;</button>
+      </div>
+
+      {/* Claude API Key */}
+      <div style={{ marginBottom: 18 }}>
+        <label className="settings-label">Claude API Key</label>
+        <input className="settings-input" type="password" value={config.claudeKey}
+          onChange={e => setConfig(c => ({...c, claudeKey: e.target.value}))} placeholder="sk-ant-..." />
+        <div className="settings-hint">Powers AI priority suggestions &middot; console.anthropic.com</div>
+      </div>
+
+      {/* Google Calendar OAuth */}
+      <div style={{ marginBottom: 14 }}>
+        <label className="settings-label">Google Calendar</label>
+
+        {!gcal.isConnected ? (
+          <div>
+            <div style={{ marginBottom: 10 }}>
+              <input className="settings-input" type="text" value={config.gcalClientId}
+                onChange={e => setConfig(c => ({...c, gcalClientId: e.target.value}))}
+                placeholder="Your Google OAuth Client ID" />
+              <div className="settings-hint">e.g. 123456789.apps.googleusercontent.com</div>
+            </div>
+
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <button className="connect-btn google" onClick={gcal.connect} disabled={gcal.loading}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A10.96 10.96 0 001 12c0 1.77.42 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                </svg>
+                {gcal.loading ? "Connecting..." : "Connect Google Calendar"}
+              </button>
+              <button onClick={() => setShowSetup(!showSetup)} style={{
+                background: "none", border: "1px solid #2a2a4a", color: "#8888aa", padding: "8px 12px",
+                borderRadius: 8, cursor: "pointer", fontSize: 11, fontFamily: "var(--mono)",
+              }}>
+                {showSetup ? "Hide setup" : "Setup guide"}
+              </button>
+            </div>
+
+            {gcal.error && (
+              <div style={{ marginTop: 8, padding: "8px 12px", background: "#ff2d7b10", border: "1px solid #ff2d7b33", borderRadius: 6, color: "#ff2d7b", fontSize: 11, fontFamily: "var(--mono)" }}>
+                {gcal.error}
+              </div>
+            )}
+
+            {showSetup && (
+              <div className="setup-guide">
+                <div className="setup-guide-title">One-time Google Cloud setup (2 min)</div>
+                <div className="setup-step"><strong>1.</strong> Go to <code>console.cloud.google.com</code></div>
+                <div className="setup-step"><strong>2.</strong> Create a new project (or select one)</div>
+                <div className="setup-step"><strong>3.</strong> Go to <strong>APIs &amp; Services</strong> &rarr; <strong>Library</strong> &rarr; search <strong>Google Calendar API</strong> &rarr; <strong>Enable</strong></div>
+                <div className="setup-step"><strong>4.</strong> Go to <strong>APIs &amp; Services</strong> &rarr; <strong>Credentials</strong> &rarr; <strong>Create Credentials</strong> &rarr; <strong>OAuth client ID</strong></div>
+                <div className="setup-step"><strong>5.</strong> Application type: <strong>Web application</strong></div>
+                <div className="setup-step"><strong>6.</strong> Under <strong>Authorized JavaScript origins</strong>, add the URL where you host this app (e.g. <code>http://localhost:8000</code> or your domain)</div>
+                <div className="setup-step"><strong>7.</strong> Click <strong>Create</strong>, copy the <strong>Client ID</strong>, and paste it above</div>
+                <div className="setup-step" style={{ marginTop: 8, color: "#ffaa00" }}>
+                  <strong>Note:</strong> If in "Testing" mode in OAuth consent screen, add your Google email as a test user.
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div>
+            <div className="gcal-user">
+              <div className="gcal-user-icon">{(gcal.email || "?")[0].toUpperCase()}</div>
+              <div className="gcal-user-info">
+                <div className="gcal-user-email">{gcal.email}</div>
+                <div className="gcal-user-status">{"\u2713"} Calendar connected</div>
+                <div className="gcal-expiry">{minutesLeft()}</div>
+              </div>
+              <button className="connect-btn disconnect" onClick={gcal.disconnect}>Disconnect</button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="pwa-box">
+        <div className="pwa-title">{"\uD83D\uDCF1"} ADD TO iPHONE HOME SCREEN</div>
+        <div className="pwa-text">Open this page in Safari &rarr; tap Share (&uarr;) &rarr; "Add to Home Screen". Runs fullscreen like a native app.</div>
+      </div>
+
+      <div style={{ display:"flex", gap:8, marginTop:14, flexWrap:"wrap" }}>
+        <span className={"status-pill " + (config.claudeKey ? "ok" : "warn")}>
+          {config.claudeKey ? "\u2713 Claude connected" : "\u2717 Claude not configured"}
+        </span>
+        <span className={"status-pill " + (gcal.isConnected ? "ok" : "info")}>
+          {gcal.isConnected ? "\u2713 Calendar connected" : "\u25CB Calendar not connected"}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function TaskInput({ onAdd, config, gcalToken }) {
+  const [step, setStep] = useState(0);
+  const [text, setText] = useState("");
+  const [status, setStatus] = useState("");
+  const inputRef = useRef(null);
+
+  useEffect(() => { if (step === 0 && inputRef.current) inputRef.current.focus(); }, [step]);
+
+  const handleSubmit = () => { if (text.trim()) setStep(1); };
+
+  const handleDeadline = async (dl) => {
+    setStep(2);
+    let aiResult = null;
+    if (config.claudeKey) {
+      setStatus("Analyzing with Claude AI...");
+      try {
+        aiResult = await askClaude(config.claudeKey, text, dl);
+        setStatus("Priority: " + (aiResult.priority || "").toUpperCase() + " \u2014 " + aiResult.reason);
+      } catch (e) {
+        setStatus("AI unavailable \u2014 using deadline-based priority");
+      }
+    } else {
+      setStatus("Using deadline-based priority (add API key for AI)");
+      await new Promise(r => setTimeout(r, 600));
+    }
+    const priority = aiResult?.priority || (dl === "day" ? "urgent" : dl === "week" ? "high" : "medium");
+
+    let calAdded = false;
+    const isCalWorthy = aiResult?.isCalendarWorthy ?? /test|exam|meeting|appointment|deadline|due|presentation|interview/i.test(text);
+    if (gcalToken && isCalWorthy) {
+      setStatus("Adding to Google Calendar...");
+      try {
+        const event = aiResult?.calendarEvent || { title: text, description: "Deadline: end of " + dl };
+        calAdded = await addToGoogleCalendar(gcalToken, event, dl);
+        if (calAdded) setStatus("\u2713 Added to Calendar!");
+      } catch (e) {
+        setStatus("Calendar error: " + e.message);
+      }
+    }
+    await new Promise(r => setTimeout(r, 500));
+
+    onAdd({
+      id: uid(), text: text.trim(), deadline: dl,
+      deadlineDate: deadlineDate(dl).toISOString(), priority,
+      aiReason: aiResult?.reason || null, calendarSynced: calAdded,
+      createdAt: new Date().toISOString(), completed: false,
+    });
+    setText(""); setStep(0); setStatus("");
+  };
+
+  const cancel = () => { setStep(0); setStatus(""); };
+
+  if (step === 2) return (
+    <div className="input-area">
+      <div className="processing">
+        <div><span className="pulse-dot"></span><span className="processing-label">Processing</span></div>
+        <div className="processing-status">{status}</div>
+      </div>
+    </div>
+  );
+
+  if (step === 1) return (
+    <div className="input-area">
+      <div className="deadline-section">
+        <div className="deadline-header">
+          <div className="deadline-label">When is this due?</div>
+          <button className="cancel-btn" onClick={cancel}>cancel</button>
+        </div>
+        <div className="task-preview">"{text}"</div>
+        <div className="deadline-grid">
+          {DEADLINE_OPTIONS.map(opt => (
+            <button key={opt.key} className="deadline-btn" onClick={() => handleDeadline(opt.key)}>
+              <div className="deadline-btn-title">{opt.label}</div>
+              <div className="deadline-btn-sub">{opt.sub}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="input-area">
+      <div className="input-row">
+        <input ref={inputRef} className="task-input" value={text} onChange={e => setText(e.target.value)}
+          onKeyDown={e => e.key === "Enter" && handleSubmit()} placeholder="What needs to be done?" />
+        <button className="glow-btn" onClick={handleSubmit} disabled={!text.trim()}>Add</button>
+      </div>
+    </div>
+  );
+}
+
+function TaskCard({ task, onComplete, onDelete }) {
+  const meta = PRIORITY_META[task.priority] || PRIORITY_META.medium;
+  const tl = timeLeft(task.deadlineDate);
+  const overdue = tl === "Overdue";
+  return (
+    <div className="task-card" style={{ borderLeftColor: meta.color, "--card-glow": meta.color + "44" }}>
+      <div className="task-card-inner">
+        <div style={{ flex: 1 }}>
+          <div className={"task-text" + (task.completed ? " done" : "")}>{task.text}</div>
+          {task.aiReason && <div className="task-ai">AI: {task.aiReason}</div>}
+          <div className="task-tags">
+            <span className="tag" style={{ color: meta.color, background: meta.color + "18", border: "1px solid " + meta.color + "33" }}>
+              {meta.icon} {meta.label}
+            </span>
+            <span className="tag" style={{ color: overdue ? "#ff2d7b" : "#8888aa", background: overdue ? "#ff2d7b18" : "#8888aa12", border: "1px solid " + (overdue ? "#ff2d7b33" : "#8888aa22") }}>
+              {tl} &middot; {formatDate(task.deadlineDate)}
+            </span>
+            {task.calendarSynced && (
+              <span className="tag" style={{ color: "#44dd88", background: "#44dd8818", border: "1px solid #44dd8833" }}>
+                {"\uD83D\uDCC5"} Synced
+              </span>
+            )}
+          </div>
+        </div>
+        <div className="task-actions">
+          {!task.completed && <button className="action-btn complete" onClick={() => onComplete(task.id)}>{"\u2713"}</button>}
+          <button className="action-btn delete" onClick={() => onDelete(task.id)}>{"\u2715"}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StatsBar({ tasks }) {
+  const active = tasks.filter(t => !t.completed).length;
+  const today = tasks.filter(t => t.deadline === "day" && !t.completed).length;
+  const urgent = tasks.filter(t => t.priority === "urgent" && !t.completed).length;
+  const done = tasks.filter(t => t.completed).length;
+  const stats = [
+    { label: "Active", value: active, color: "#00e5ff" },
+    { label: "Due Today", value: today, color: "#ff2d7b" },
+    { label: "Urgent", value: urgent, color: "#ff2d7b" },
+    { label: "Done", value: done, color: "#44dd88" },
+  ];
+  return (
+    <div className="stats">
+      {stats.map((s, i) => (
+        <div key={i} className="stat-item">
+          <div className="stat-value" style={{ color: s.color }}>{s.value}</div>
+          <div className="stat-label">{s.label}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function PrioritySection({ priority, tasks, onComplete, onDelete }) {
+  const meta = PRIORITY_META[priority];
+  if (!tasks.length) return null;
+  return (
+    <div className="priority-section">
+      <div className="priority-header">
+        <div className="priority-dot" style={{ background: meta.color, boxShadow: "0 0 4px " + meta.color + "44" }}></div>
+        <span className="priority-name" style={{ color: meta.color }}>{meta.label}</span>
+        <span className="priority-count">({tasks.length})</span>
+        <div className="priority-line" style={{ background: meta.color + "22" }}></div>
+      </div>
+      {tasks.map(t => <TaskCard key={t.id} task={t} onComplete={onComplete} onDelete={onDelete} />)}
+    </div>
+  );
+}
+
+/* ─── Main App ─── */
+function App() {
+  const [tasks, setTasks] = useState([]);
+  const [view, setView] = useState("tasks");
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [config, setConfig] = useState({ claudeKey: "", gcalClientId: "" });
+  const [gisReady, setGisReady] = useState(false);
+
+  // Wait for Google Identity Services to load
+  useEffect(() => {
+    function check() {
+      if (window.google?.accounts?.oauth2) { setGisReady(true); return; }
+      setTimeout(check, 200);
+    }
+    check();
+  }, []);
+
+  const gcal = useGoogleAuth(gisReady ? config.gcalClientId : null);
+
+  const addTask = useCallback(t => setTasks(prev => [...prev, t]), []);
+  const completeTask = useCallback(id => setTasks(prev => prev.map(t => t.id === id ? { ...t, completed: true } : t)), []);
+  const deleteTask = useCallback(id => setTasks(prev => prev.filter(t => t.id !== id)), []);
+
+  const activeTasks = tasks.filter(t => !t.completed);
+  const completedTasks = tasks.filter(t => t.completed);
+
+  return (
+    <div id="app">
+      <Header view={view} setView={setView} taskCount={activeTasks.length} settingsOpen={settingsOpen} setSettingsOpen={setSettingsOpen} />
+      {settingsOpen && <SettingsPanel config={config} setConfig={setConfig} gcal={gcal} onClose={() => setSettingsOpen(false)} />}
+      <TaskInput onAdd={addTask} config={config} gcalToken={gcal.token} />
+      <StatsBar tasks={tasks} />
+      <div className="task-list">
+        {view === "tasks" && (
+          activeTasks.length === 0 ?
+            <div className="empty"><div className="empty-icon">{"\u26A1"}</div><div className="empty-title">No tasks yet</div><div className="empty-sub">Add a task above to get started</div></div> :
+            ["urgent", "high", "medium", "low"].map(p => (
+              <PrioritySection key={p} priority={p}
+                tasks={activeTasks.filter(t => t.priority === p).sort((a, b) => new Date(a.deadlineDate) - new Date(b.deadlineDate))}
+                onComplete={completeTask} onDelete={deleteTask} />
+            ))
+        )}
+        {view === "completed" && (
+          completedTasks.length === 0 ?
+            <div className="empty"><div className="empty-icon">{"\u2713"}</div><div className="empty-title">No completed tasks yet</div><div className="empty-sub">Complete tasks to see them here</div></div> :
+            completedTasks.map(t => <TaskCard key={t.id} task={t} onComplete={completeTask} onDelete={deleteTask} />)
+        )}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
