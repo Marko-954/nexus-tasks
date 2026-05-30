@@ -20,15 +20,21 @@ Those three themes should drive prioritization. Everything below is sorted into 
 
 ---
 
-## 2. Account model: design for agencies first
+## 2. Account model: the firm owns its data (agency is a guest)
 
-Our clients are firms that often manage **many** advertiser accounts. The integration should assume an **MCC (Manager account) model** from day one:
+The core principle: **the law firm owns its Google Ads account and its data — independent of whichever agency happens to be running it.** Law firms change agencies; when they do, they should keep their full reporting history. So in Atrium Flow, the **tenant is the firm**, and the Google Ads connection + all synced data belong to that firm's workspace. This is both the right ethics and a real selling point: *"switch agencies anytime — your data and history stay with you."*
 
-- **One connection, many accounts.** A firm connects its Manager account once; we enumerate all client accounts under it (`listAccessibleCustomers` + `login-customer-id`) instead of forcing a separate OAuth per advertiser.
-- **Portfolio-level roll-ups** across all of a firm's accounts, plus drill-down into any single client.
-- **Role-aware views:** the firm sees everything; an end-client sees only their own account (white-label).
+**Primary model — firm-owned connection (default):**
+- The **firm's workspace owns the connection** and the synced data, regardless of who performs setup.
+- The firm grants its agency **access** as a scoped collaborator inside Atrium Flow (view/report, no ownership). At the Google Ads level, the firm can separately grant the agency manager-link access — but that's Google's relationship, not ours.
+- **Switching agencies = swap a collaborator.** Revoke the old agency's Atrium Flow access, invite the new one. The connection, history, and dashboards never move.
+- Setup flexibility: either the firm connects its own account, **or** the agency connects on the firm's behalf — but ownership always vests in the *firm's* tenant. Ownership is a tenancy/permissions fact, decoupled from who clicked "connect."
 
-Getting this right early is what separates a "connect your Google Ads" toy from an agency-grade platform. Also plan for **Standard developer-token access** (higher quotas) since agencies generate real volume.
+**Secondary model — agency MCC (opt-in convenience):**
+- An agency that prefers a single pane can connect its **Manager (MCC) account** and manage many firms' accounts under it (`listAccessibleCustomers` + `login-customer-id`), with portfolio roll-ups across its book.
+- Even here, preserve portability: a firm managed this way can later **claim/port** its account's data to its own firm-owned workspace, so the agency relationship never traps the data.
+
+**Both models need:** per-account drill-down, role-aware views (firm sees its own; agency sees the firms it's invited to), and **Standard developer-token access** for volume. The difference is purely *who the tenant/owner is* — build the data model so ownership sits with the firm by default and the MCC case is a grouping layer on top, not the foundation.
 
 ---
 
@@ -122,6 +128,7 @@ Auto-generate branded PDF/email reports (powered by the AI narrative + charts) o
 - Plain-English insights they actually understand.
 - Proof of ROI (ROAS/CPA trends, wasted-spend recovered).
 - Branded reports they can forward to *their* stakeholders.
+- **They own their data.** Reporting history survives an agency change — no lock-in, no starting over.
 
 ---
 
@@ -147,7 +154,7 @@ Auto-generate branded PDF/email reports (powered by the AI narrative + charts) o
 
 ## 9. Recommended prioritization (build order)
 
-1. **Foundation:** MCC OAuth + multi-account sync + Tier 1 metrics, cached daily with rolling re-sync. *(Trust + table stakes.)*
+1. **Foundation:** firm-owned connection (firm = tenant/owner) + Tier 1 metrics, cached daily with rolling re-sync; agency-collaborator access on top. *(Trust + table stakes + data portability.)* Add the agency-MCC grouping mode as a secondary pass.
 2. **First wow:** AI narrative reporting (§4.1) + anomaly/zero-conversion alerts (§4.3) + budget pacing (§4.2). *(Immediate, demoable differentiation using strengths we already have.)*
 3. **Money story:** wasted-spend/search terms (§4.4) + impression share (§4.5) + Recommendations (§4.6).
 4. **Stickiness:** scheduled white-label reports (§4.9) + change-event correlation (§4.8) + conversion-health (§4.7).
@@ -159,7 +166,7 @@ The thread: **earn trust with rock-solid data, then win on AI insight + proactiv
 
 ## 10. Open questions to sharpen the plan
 
-1. **Agency vs. direct:** are Atrium Flow's users mostly agencies managing many accounts (→ MCC-first), single-business advertisers, or both?
+1. **Resolved — firm-owned, portable by default** (§2). Remaining nuance: when an agency sets up on a firm's behalf, what's the cleanest UX to vest ownership in the firm (e.g. firm-initiated invite, or agency-creates-then-firm-claims)?
 2. **AI depth:** how far do we push AI narratives — summaries only, or conversational "ask anything about my account"?
 3. **Alert channels:** in-app only, or email/Slack/SMS too?
 4. **Write-back appetite:** is "act on it" (apply negatives, accept recommendations) on the roadmap, or strictly read-only long-term?
